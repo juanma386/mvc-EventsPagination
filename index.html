@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Event Registration with Pagination</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="root"></div>
+  <div id="pagination"></div>
+  <script>
+    const events = [
+  { id: 1, title: "Conferencia de Marketing 1", date: "2023-11-15", location: "Sala de Conferencias A" },
+  { id: 2, title: "Taller de Desarrollo Web 1", date: "2023-11-20", location: "Sala de Capacitación B" },
+  { id: 3, title: "Concierto en Vivo 1", date: "2023-12-05", location: "Estadio Principal" },
+  { id: 4, title: "Charla de Negocios 1", date: "2023-11-18", location: "Salón de Eventos C" },
+  { id: 5, title: "Exposición de Arte 1", date: "2023-11-25", location: "Galería de Arte X" },
+  { id: 6, title: "Taller de Fotografía 1", date: "2023-12-02", location: "Estudio de Fotografía Y" },
+  { id: 7, title: "Conferencia de Salud 1", date: "2023-12-10", location: "Hospital Z" },
+  { id: 8, title: "Torneo de Ajedrez 1", date: "2023-11-22", location: "Club de Ajedrez" },
+  { id: 9, title: "Feria de Empleo 1", date: "2023-11-30", location: "Centro de Convenciones D" },
+  { id: 10, title: "Concierto de Jazz 1", date: "2023-12-12", location: "Teatro Municipal" },
+  { id: 11, title: "Conferencia de Marketing 2", date: "2023-11-16", location: "Sala de Conferencias A" },
+  { id: 12, title: "Taller de Desarrollo Web 2", date: "2023-11-21", location: "Sala de Capacitación B" },
+  { id: 13, title: "Concierto en Vivo 2", date: "2023-12-06", location: "Estadio Principal" },
+  { id: 14, title: "Charla de Negocios 2", date: "2023-11-19", location: "Salón de Eventos C" },
+  { id: 15, title: "Exposición de Arte 2", date: "2023-11-26", location: "Galería de Arte X" },
+  { id: 16, title: "Taller de Fotografía 2", date: "2023-12-03", location: "Estudio de Fotografía Y" },
+  { id: 17, title: "Conferencia de Salud 2", date: "2023-12-11", location: "Hospital Z" },
+  { id: 18, title: "Torneo de Ajedrez 2", date: "2023-11-23", location: "Club de Ajedrez" },
+  { id: 19, title: "Feria de Empleo 2", date: "2023-12-01", location: "Centro de Convenciones D" },
+  { id: 20, title: "Concierto de Jazz 2", date: "2023-12-13", location: "Teatro Municipal" },
+  { id: 21, title: "Conferencia de Marketing 3", date: "2023-11-17", location: "Sala de Conferencias A" },
+  { id: 22, title: "Taller de Desarrollo Web 3", date: "2023-11-22", location: "Sala de Capacitación B" },
+  { id: 23, title: "Concierto en Vivo 3", date: "2023-12-07", location: "Estadio Principal" },
+  { id: 24, title: "Charla de Negocios 3", date: "2023-11-20", location: "Salón de Eventos C" },
+  { id: 25, title: "Exposición de Arte 3", date: "2023-11-27", location: "Galería de Arte X" },
+  { id: 26, title: "Taller de Fotografía 3", date: "2023-12-04", location: "Estudio de Fotografía Y" },
+  { id: 27, title: "Conferencia de Salud 3", date: "2023-12-12", location: "Hospital Z" },
+  { id: 28, title: "Torneo de Ajedrez 3", date: "2023-11-24", location: "Club de Ajedrez" },
+  { id: 29, title: "Feria de Empleo 3", date: "2023-12-02", location: "Centro de Convenciones D" },
+  { id: 30, title: "Concierto de Jazz 3", date: "2023-12-14", location: "Teatro Municipal" },
+  // ... Agregar más eventos
+];
+
+const eventsArray = [
+
+    /*-
+    { id: 1, title: "Conferencia de Marketing", date: "2023-11-15", location: "Sala de Conferencias A" },
+    { id: 2, title: "Taller de Desarrollo Web", date: "2023-11-20", location: "Sala de Capacitación B" },
+    { id: 3, title: "Concierto en Vivo", date: "2023-12-05", location: "Estadio Principal" },
+    // ... Agregar más eventos
+    */
+  ];
+  class Model {
+    constructor() {
+      this.dbPromise = this.initDB();
+    }
+  
+    async initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('EventsDB', 1);
+  
+        request.onupgradeneeded = function(event) {
+          const db = event.target.result;
+          db.createObjectStore('events', { keyPath: 'id' });
+        };
+  
+        request.onsuccess = function(event) {
+          const db = event.target.result;
+          resolve(db);
+        };
+  
+        request.onerror = function(event) {
+          reject(event.target.error);
+        };
+      });
+    }
+  
+    async registerEvent(event) {
+      const db = await this.dbPromise;
+  
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['events'], 'readwrite');
+        const store = transaction.objectStore('events');
+        const request = store.add(event);
+  
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+  
+    async getEvents() {
+      const db = await this.dbPromise;
+  
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['events'], 'readonly');
+        const store = transaction.objectStore('events');
+        const request = store.getAll();
+  
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+  
+    async removeEvent(eventId) {
+      const db = await this.dbPromise;
+  
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['events'], 'readwrite');
+        const store = transaction.objectStore('events');
+        const request = store.delete(eventId);
+  
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+    
+    getCurrentPageFromURL() {
+      const searchParams = new URLSearchParams(location.search);
+      const currentPage = parseInt(searchParams.get('page'));
+      // Establece la página actual en localStorage
+      localStorage.setItem('currentPage', currentPage);
+      return parseInt(searchParams.get('page')) ;
+    }
+    
+  }
+  
+  class View {
+    constructor() {
+      this.app = document.getElementById('root');
+      this.pagination = document.getElementById('pagination');
+    }
+  
+    async displayEvents(events, page, eventsPerPage) {
+      const eventList = document.createElement('ul');
+      const startIndex = (page - 1) * eventsPerPage;
+      const endIndex = startIndex + eventsPerPage;
+  
+      const validEvents = Array.isArray(events) ? events : [];
+      validEvents.slice(startIndex, endIndex).forEach((event, index) => {
+        const eventItem = document.createElement('li');
+        eventItem.setAttribute('data-id', event.id);
+        eventItem.classList.add('clickable');
+  
+        const colorClass = index % 2 === 0 ? 'grey-400' : 'grey-500';
+        eventItem.classList.add(colorClass);
+  
+        eventItem.addEventListener('click', () => this.toggleColorAndRemove(eventItem, event.id));
+  
+        eventItem.textContent = `${event.title} - ${event.date} - ${event.location}`;
+        eventList.appendChild(eventItem);
+      });
+  
+      this.app.innerHTML = '';
+      this.app.appendChild(eventList);
+    }
+  
+    createPaginationButtons(page, totalEvents, eventsPerPage) {
+      const numPages = Math.ceil(totalEvents / eventsPerPage);
+      const paginationButtons = document.createElement('div');
+      paginationButtons.classList.add('pagination-buttons');
+  
+      const firstButton = document.createElement('button');
+      firstButton.textContent = 'First';
+      firstButton.setAttribute('data-page', 1); // Establece data-page para el primer botón
+      firstButton.addEventListener('click', () => this.handlePageChange(1));
+      paginationButtons.appendChild(firstButton);
+  
+      for (let i = 1; i <= numPages; i++) {
+        const button = document.createElement('button');
+        button.textContent = i;
+        button.setAttribute('data-page', i); // Establece data-page para el botón
+        button.addEventListener('click', (event) => this.handlePageChange(parseInt(event.target.getAttribute('data-page'))));
+        if (i === page) {
+          button.classList.add('current'); // Resalta la página actual
+        }
+        paginationButtons.appendChild(button);
+      }
+  
+      const lastButton = document.createElement('button');
+      lastButton.textContent = 'Last';
+      lastButton.setAttribute('data-page', numPages); // Establece data-page para el último botón
+      lastButton.addEventListener('click', () => this.handleLastPage(numPages));
+      paginationButtons.appendChild(lastButton);
+  
+      this.pagination.innerHTML = '';
+      this.pagination.appendChild(paginationButtons);
+    }
+    async handlePageChange(page) {
+      const events = await model.getEvents();
+      this.displayEvents(events, page, eventsPerPage);
+      this.createPaginationButtons(page, events.length, eventsPerPage);
+    }
+  
+    handleFirstPage() {
+      this.handlePageChange(1);
+    }
+  
+    async handleLastPage(lastPage) {
+      const events = await model.getEvents();
+      this.handlePageChange(lastPage);
+    }
+  
+    toggleColorAndRemove(element, eventId) {
+      if (element.classList.contains('red')) {
+        this.removeFromIndexedDB(eventId);
+      } else {
+        element.classList.add('red');
+      }
+    }
+  
+    async removeFromIndexedDB(eventId) {
+      await model.removeEvent(eventId);
+      this.handlePageChange(1);
+    }
+  }
+  
+  class Controller {
+    constructor(model, view) {
+      this.model = model;
+      this.view = view;
+      this.currentPage = this.model.getCurrentPageFromURL(); // Obtén la página actual de la URL
+    }
+    async handlePageChange(page) {
+      const events = await model.getEvents();
+      this.view.displayEvents(events, page, eventsPerPage);
+      this.view.createPaginationButtons(page, events.length, eventsPerPage);
+  
+      // Actualiza la página actual en el controlador
+      this.currentPage = page;
+      
+      // Actualiza la URL con la página actual
+      this.updateURL();
+      
+    }
+  
+    async registerEventsFromArray(eventsArray) {
+      if (eventsArray && eventsArray.length > 0) {
+        for (const event of eventsArray) {
+          await this.model.registerEvent(event);
+        }
+      }
+
+      const page = this.currentPage; // Usa la página actual almacenada en el controlador
+      const events = await this.model.getEvents();
+      this.view.displayEvents(events, page, eventsPerPage);
+      this.view.createPaginationButtons(page, events.length, eventsPerPage);
+    }
+
+    updateURL() {
+      const searchParams = new URLSearchParams(location.search);
+      searchParams.set('page', this.currentPage.toString());
+      const newURL = `${location.pathname}?${searchParams.toString()}`;
+      history.pushState({}, '', newURL);
+    }
+        
+  }
+  
+  
+
+  const model = new Model();
+  const view = new View();
+  const controller = new Controller(model, view);
+  const eventsPerPage = 5;
+  
+  // Supongamos que tienes un arreglo llamado 'eventsArray' con tus eventos
+  
+  // Registra eventos y establece la página actual
+  controller.registerEventsFromArray(eventsArray);
+  
+  // Obtener la página actual desde localStorage
+  const currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
+  
+  // Establece la página actual en localStorage
+  localStorage.setItem('currentPage', currentPage);
+  
+  // Maneja la página actual
+  controller.handlePageChange(currentPage);
+
+  const paginationButtons = document.querySelectorAll('[data-page]');
+
+  paginationButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const page = button.getAttribute('data-page');
+      // Redirige a la página con el query correspondiente 'page'
+      document.location.href = document.location.origin + '?' + updateQueryString('page', page);
+    });
+  });
+
+  function updateQueryString(key, value) {
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.set(key, value);
+    return queryParams.toString();
+  }
+  </script>
+</body>
+</html>
