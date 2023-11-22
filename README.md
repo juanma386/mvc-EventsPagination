@@ -10,7 +10,12 @@ Uso
 Para inicializar el proyecto, sigue estos pasos:
 
 Abre la consola de desarrollador en tu navegador web presionando F12.
-Ingresa el siguiente comando: controller.registerEventsFromArray(events);
+Ingresa el siguiente comando: 
+
+```
+controller.registerEventsFromArray(events);
+```
+
 Eliminación de un Campo
 Puedes eliminar un campo realizando un doble click sobre el elemento que deseas eliminar.
 
